@@ -1,142 +1,486 @@
-package UDP;
+package RMI;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.util.HashMap;
+import java.util.Map;
 
+public class RMIClient {
 
-import java.io.Serializable;
+    public static void main(String[] args) {
+        try {
+            // Ket noi den RMI Registry
+            Registry registry =
+                    LocateRegistry.getRegistry("36.50.135.242");
 
-public class Student implements Serializable {
+            // Lay doi tuong RMI tu server
+            ByteService service =
+                    (ByteService) registry.lookup("RMIByteService");
 
-    private static final long serialVersionUID = 20171107;
+            // a. Nhan mang byte tu server
+            byte[] data = service.requestData(
+                    "B22DCCN200",
+                    "F38nx5bU"
+            );
 
-    private String id;
-    private String code;
-    private String name;
-    private String email;
+            // Kiem tra mang rong
+            if (data == null || data.length == 0) {
+                System.out.println("Mang du lieu rong!");
+                return;
+            }
 
-    public Student(String id, String code, String name, String email) {
-        this.id = id;
-        this.code = code;
-        this.name = name;
-        this.email = email;
+            // b. Dem so lan xuat hien cua tung phan tu
+            Map<Byte, Integer> frequency = new HashMap<>();
+
+            for (byte value : data) {
+                frequency.put(
+                        value,
+                        frequency.getOrDefault(value, 0) + 1
+                );
+            }
+
+            // Tim phan tu co tan suat xuat hien it nhat
+            // Neu bang nhau, chon phan tu xuat hien truoc
+            byte minValue = data[0];
+            int minCount = frequency.get(minValue);
+
+            for (byte value : data) {
+                int count = frequency.get(value);
+
+                if (count < minCount) {
+                    minValue = value;
+                    minCount = count;
+                }
+            }
+
+            // c. Tao mang ket qua [phan tu, so lan xuat hien]
+            byte[] result = {
+                    minValue,
+                    (byte) minCount
+            };
+
+            // Gui ket qua ve server
+            service.submitData(
+                    "B22DCCN200",
+                    "F38nx5bU",
+                    result
+            );
+
+            // In ket qua kiem tra
+            System.out.println("Mang nhan duoc:");
+            for (byte value : data) {
+                System.out.print(value + " ");
+            }
+
+            System.out.println();
+            System.out.println("Phan tu xuat hien it nhat: " + minValue);
+            System.out.println("So lan xuat hien: " + minCount);
+            System.out.println("Mang ket qua da gui:");
+
+            for (byte value : result) {
+                System.out.print(value + " ");
+            }
+
+            System.out.println();
+            System.out.println("Da gui du lieu thanh cong!");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
+}
+B2
+package RMI;
 
-    public Student(String code) {
-        this.code = code;
-    }
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.util.HashMap;
+import java.util.Map;
 
-    public String getId() {
-        return id;
-    }
+public class RMIClient1 {
 
-    public void setId(String id) {
-        this.id = id;
-    }
+    public static void main(String[] args) {
+        try {
+            // Ket noi den RMI Server
+            Registry registry =
+                    LocateRegistry.getRegistry("36.50.135.242");
 
-    public String getCode() {
-        return code;
-    }
+            // Lay doi tuong ByteService
+            ByteService service =
+                    (ByteService) registry.lookup("RMIByteService");
 
-    public void setCode(String code) {
-        this.code = code;
-    }
+            // a. Nhan mang byte tu server
+            byte[] data = service.requestData(
+                    "B22DCCN200",
+                    "AnBBxdqq"
+            );
 
-    public String getName() {
-        return name;
-    }
+            if (data == null || data.length == 0) {
+                System.out.println("Mang du lieu rong!");
+                return;
+            }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+            // b. Dem so lan xuat hien cua tung phan tu
+            Map<Byte, Integer> frequency = new HashMap<>();
 
-    public String getEmail() {
-        return email;
-    }
+            for (byte value : data) {
+                frequency.put(
+                        value,
+                        frequency.getOrDefault(value, 0) + 1
+                );
+            }
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
+            // Tim phan tu xuat hien nhieu nhat
+            // Neu bang tan suat, chon phan tu xuat hien truoc
+            byte maxValue = data[0];
+            int maxCount = frequency.get(maxValue);
 
-    @Override
-    public String toString() {
-        return "Student{" +
-                "id='" + id + '\'' +
-                ", code='" + code + '\'' +
-                ", name='" + name + '\'' +
-                ", email='" + email + '\'' +
-                '}';
+            for (byte value : data) {
+                int count = frequency.get(value);
+
+                if (count > maxCount) {
+                    maxValue = value;
+                    maxCount = count;
+                }
+            }
+
+            // c. Tao mang ket qua [phan tu, tan suat]
+            byte[] result = {
+                    maxValue,
+                    (byte) maxCount
+            };
+
+            // Gui ket qua ve server
+            service.submitData(
+                    "B22DCCN200",
+                    "AnBBxdqq",
+                    result
+            );
+
+            System.out.println("Phan tu xuat hien nhieu nhat: "
+                    + maxValue);
+            System.out.println("Tan suat: " + maxCount);
+            System.out.println("Mang ket qua:");
+
+            for (byte value : result) {
+                System.out.print(value + " ");
+            }
+
+            System.out.println();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
 
-package UDP;
+B3
 
+package RMI;
+
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.net.URI;
+
+public class RMIClient2 {
+
+    public static void main(String[] args) {
+        try {
+            // Ket noi den RMI Registry
+            Registry registry =
+                    LocateRegistry.getRegistry("36.50.135.242");
+
+            // Lay doi tuong CharacterService
+            CharacterService service =
+                    (CharacterService) registry.lookup(
+                            "RMICharacterService"
+                    );
+
+            // a. Nhan chuoi tu server
+            String data = service.requestCharacter(
+                    "B22DCCN200",
+                    "Pfh71BAF"
+            );
+
+            // b. Ma hoa URL theo quy tac duong dan URI
+            String encoded = new URI(
+                    null, null, data, null
+            ).toASCIIString();
+
+            // c. Gui chuoi da ma hoa ve server
+            service.submitCharacter(
+                    "B22DCCN200",
+                    "Pfh71BAF",
+                    encoded
+            );
+
+            System.out.println("Chuoi ban dau: " + data);
+            System.out.println("Chuoi da ma hoa: " + encoded);
+            System.out.println("Da gui ket qua len server.");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+B4
+package RMI;
+
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+
+public class RMIClient3 {
+
+    // Chuyen so nguyen sang so La Ma
+    public static String toRoman(int number) {
+        int[] values = {
+                1000, 900, 500, 400, 100, 90,
+                50, 40, 10, 9, 5, 4, 1
+        };
+
+        String[] symbols = {
+                "M", "CM", "D", "CD", "C", "XC",
+                "L", "XL", "X", "IX", "V", "IV", "I"
+        };
+
+        StringBuilder roman = new StringBuilder();
+
+        for (int i = 0; i < values.length; i++) {
+            while (number >= values[i]) {
+                roman.append(symbols[i]);
+                number -= values[i];
+            }
+        }
+
+        return roman.toString();
+    }
+
+    public static void main(String[] args) {
+        try {
+            // Ket noi den RMI Registry
+            Registry registry =
+                    LocateRegistry.getRegistry("36.50.135.242");
+
+            // Lay doi tuong CharacterService
+            CharacterService service =
+                    (CharacterService) registry.lookup(
+                            "RMICharacterService"
+                    );
+
+            // a. Nhan chuoi so thap phan tu server
+            String data = service.requestCharacter(
+                    "B22DCCN200",
+                    "iSMUcf7E"
+            );
+
+            // Chuyen chuoi nhan duoc thanh so nguyen
+            int number = Integer.parseInt(data.trim());
+
+            // b. Chuyen so thap phan sang so La Ma
+            String result = toRoman(number);
+
+            // c. Gui ket qua ve server
+            service.submitCharacter(
+                    "B22DCCN200",
+                    "iSMUcf7E",
+                    result
+            );
+
+            // In ket qua
+            System.out.println("So nhan duoc: " + data);
+            System.out.println("So La Ma: " + result);
+            System.out.println("Da gui ket qua len server!");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+B5
+package RMI;
+
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.util.Arrays;
+import java.util.Locale;
+
+public class RMIClient4 {
+    public static void main(String[] args) {
+        String host = "36.50.135.242";
+        int port = 1099; // cổng RMI Registry mặc định
+        String studentCode = "B22DCCN200"; // TODO: đổi thành mã sinh viên của bạn
+        String qCode = "IgVoTTPA";
+
+        try {
+            // a. Kết nối Registry và lấy stub
+            Registry registry = LocateRegistry.getRegistry(host, port);
+            DataService service = (DataService) registry.lookup("RMIDataService");
+
+            // b. Nhận chuỗi CSV các số thực
+            String csv = (String) service.requestData(studentCode, qCode);
+            System.out.println("Du lieu nhan duoc: " + csv);
+
+            String[] parts = csv.trim().split("\\s*,\\s*");
+            int n = parts.length;
+            double[] a = new double[n];
+            for (int i = 0; i < n; i++) {
+                a[i] = Double.parseDouble(parts[i]);
+            }
+
+            // c. Tính trung bình, độ lệch chuẩn (tổng thể), phân vị 95
+            double sum = 0;
+            for (double v : a) sum += v;
+            double avg = sum / n;
+
+            double sq = 0;
+            for (double v : a) sq += (v - avg) * (v - avg);
+            double stddev = Math.sqrt(sq / n);
+
+            double[] sorted = a.clone();
+            Arrays.sort(sorted);
+            int idx = (int) Math.ceil(n * 0.95) - 1;
+            double p95 = sorted[idx];
+
+            // d. Tạo chuỗi kết quả và gửi lên server
+            String result = String.format(Locale.US,
+                    "average=%.2f;stddev=%.2f;p95=%.2f", avg, stddev, p95);
+            System.out.println("Ket qua: " + result);
+
+            service.submitData(studentCode, qCode, result);
+            System.out.println("Da gui ket qua.");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        // e. Kết thúc chương trình
+    }
+}
+B6
+package RMI;
+
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+public class RMIClient5{
+    public static void main(String[] args) {
+        String host = "36.50.135.242";
+        int port = 1099; // cổng RMI Registry mặc định
+        String studentCode = "B22DCCN200"; // TODO: đổi thành mã sinh viên của bạn
+        String qCode = "vkwZcrKK";
+
+        try {
+            // a. Kết nối Registry và lấy stub
+            Registry registry = LocateRegistry.getRegistry(host, port);
+            DataService service = (DataService) registry.lookup("RMIDataService");
+
+            // b. Nhận mảng số nguyên từ server
+            int[] arr = (int[]) service.requestData(studentCode, qCode);
+            System.out.println("Du lieu nhan duoc: " + Arrays.toString(arr));
+
+            // c. Tìm các đỉnh cục bộ (chỉ số bắt đầu từ 1)
+            List<Integer> peaks = new ArrayList<>();
+            int n = arr.length;
+            for (int i = 0; i < n; i++) {
+                boolean leftOk = (i == 0) || arr[i] > arr[i - 1];
+                boolean rightOk = (i == n - 1) || arr[i] > arr[i + 1];
+                if (leftOk && rightOk) {
+                    peaks.add(i + 1);
+                }
+            }
+            System.out.println("Vi tri dinh cuc bo: " + peaks);
+
+            // d. Gửi kết quả lên server
+            service.submitData(studentCode, qCode, peaks);
+            System.out.println("Da gui ket qua.");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        // e. Kết thúc chương trình
+    }
+}
+B7
+
+package RMI;
+
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.io.Serializable;
 
-public class Customer implements Serializable {
+public class RMIClient6 {
 
-    private static final long serialVersionUID = 20151107;
+    public static void main(String[] args) {
+        String studentCode = "B22DCCN200"; // Thay bang ma sinh vien
+        String qCode = "hmkyTJ4W";
 
-    private String id;
-    private String code;
-    private String name;
-    private String dayOfBirth;
-    private String userName;
+        try {
+            // Ket noi den Registry Server
+            Registry registry =
+                    LocateRegistry.getRegistry("36.50.135.242");
 
-    public Customer(String id, String code, String name,
-                    String dayOfBirth, String userName) {
-        this.id = id;
-        this.code = code;
-        this.name = name;
-        this.dayOfBirth = dayOfBirth;
-        this.userName = userName;
-    }
+            // Lay ObjectService
+            ObjectService service =
+                    (ObjectService) registry.lookup("RMIObjectService");
 
-    public String getId() {
-        return id;
-    }
+            // Nhan doi tuong tu server
+            Serializable received =
+                    service.requestObject(studentCode, qCode);
 
-    public void setId(String id) {
-        this.id = id;
-    }
+            // Ep kieu doi tuong
+            TicketSla ticket = (TicketSla) received;
 
-    public String getCode() {
-        return code;
-    }
+            String priority = ticket.getPriority();
+            int hours = ticket.getOpenedHoursAgo();
 
-    public void setCode(String code) {
-        this.code = code;
-    }
+            // Xac dinh nguong SLA theo priority
+            boolean breached;
 
-    public String getName() {
-        return name;
-    }
+            switch (priority) {
+                case "CRITICAL":
+                    breached = hours > 2;
+                    break;
+                case "HIGH":
+                    breached = hours > 8;
+                    break;
+                case "MEDIUM":
+                    breached = hours > 24;
+                    break;
+                case "LOW":
+                    breached = hours > 72;
+                    break;
+                default:
+                    throw new IllegalArgumentException(
+                            "Priority khong hop le: " + priority);
+            }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+            // Cap nhat breached va action
+            ticket.setBreached(breached);
 
-    public String getDayOfBirth() {
-        return dayOfBirth;
-    }
+            if (!breached) {
+                ticket.setAction("MONITOR");
+            } else if (priority.equals("CRITICAL")
+                    || hours > 96) {
+                ticket.setAction("ESCALATE_L2");
+            } else {
+                ticket.setAction("ESCALATE_L1");
+            }
 
-    public void setDayOfBirth(String dayOfBirth) {
-        this.dayOfBirth = dayOfBirth;
-    }
+            // Gui doi tuong da cap nhat ve server
+            service.submitObject(studentCode, qCode, ticket);
 
-    public String getUserName() {
-        return userName;
-    }
+            System.out.println("Ticket ID: " + ticket.getTicketId());
+            System.out.println("Priority: " + ticket.getPriority());
+            System.out.println("Opened hours ago: "
+                    + ticket.getOpenedHoursAgo());
+            System.out.println("Breached: " + ticket.isBreached());
+            System.out.println("Action: " + ticket.getAction());
+            System.out.println("Da gui doi tuong thanh cong.");
 
-    public void setUserName(String userName) {
-        this.userName = userName;
-    }
-
-    @Override
-    public String toString() {
-        return "Customer{" +
-                "id='" + id + '\'' +
-                ", code='" + code + '\'' +
-                ", name='" + name + '\'' +
-                ", dayOfBirth='" + dayOfBirth + '\'' +
-                ", userName='" + userName + '\'' +
-                '}';
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
